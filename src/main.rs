@@ -57,8 +57,6 @@ fn main() {
         }
         if done == false { continue; }
 
-
-
         println!("\nWork: {} mins\nBreak: {} mins\nExtended: {} mins\nIterations: {}\n",work_time, break_time, extended_time, num_iterations);
         break;
     }
