@@ -30,7 +30,6 @@ fn main() {
         let tokens:Vec<&str>= input.trim().split(" ").collect();
 
         // Check that there are 4 inputs
-        //let fourth = &tokens[4];
         match tokens.get(3) {
             Some(_n) => {}
             None => {
