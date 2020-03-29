@@ -64,39 +64,39 @@ fn main() {
     // Loop through cycles
     loop{
         for iter_num in 0..(num_iterations+1) {
-            start_timer(work_time);
-            println!("Take a break.");
+            start_timer(work_time, "work");
             play_sound("BreakSound.wav");
             if iter_num < num_iterations {    
-                start_timer(break_time);
-                println!("Get back to work.");
-                play_sound("WorkSound.wav");
+                start_timer(break_time, "break");
+               play_sound("WorkSound.wav");
             } else {
-                start_timer(extended_time);
-                println!("Get backto work.");
+                start_timer(extended_time, "long break");
                 play_sound("WorkSound.wav");
             }
         }
     }
 
-    fn start_timer(mut mins: i32){
+    fn start_timer(mut mins: i32, iteration_type: &str) {
         // Define a variables for seconds
         let mut secs: i32 = 0;
-        // Every minute
+        // For every minute of this cycle
         while mins >= 0 {
             // Decrement a minute and reset the seconds
             if secs < 0 {  
                 mins -= 1;
-                secs = 59
+                secs = 59;
             }
             // If the time is expired, don't wait or print the time
             if mins < 0 { break }
 
+            // Clear the terminal before printing
+            print!("\x1B[2J");
+            
             // Display the timer unless it's the last iteration
             if mins > 0 {
-                display_time_and_wait(&mins, &secs);
+                display_time_and_wait(&mins, &secs, iteration_type);
             } else if secs > 0 {
-                display_time_and_wait(&mins,&secs);
+                display_time_and_wait(&mins,&secs, iteration_type);
             } else {
                 break;
             }
@@ -106,13 +106,19 @@ fn main() {
     }
     
     // Display formatted time and wait one second
-    fn display_time_and_wait(&mins: &i32, &secs: &i32){
+    fn display_time_and_wait(&mins: &i32, &secs: &i32, iteration_type: &str) {
+        // Wait for one second in another thread
+        let child = thread::spawn(move || {
+            thread::sleep(time::Duration::from_millis(1000));
+        });
+
         // Print the time to wait in MM:SS format
         let display_mins: String = if mins < 10 { format!("0{}",mins.to_string()) } else { format!("{}",mins.to_string()) };
         let display_secs: String = if secs < 10 { format! ("0{}",secs.to_string()) } else { format! ("{}",secs.to_string()) };
-        println!("{}:{}",display_mins,display_secs);
-        ////Make sleep concurrent
-        thread::sleep(time::Duration::from_millis(10));
+        println!("{}:{} {}",display_mins,display_secs, iteration_type);
+        
+        // Wait for the sleeping thread
+        let _res = child.join();
     }
 
     fn play_sound(file_name: &str) {
