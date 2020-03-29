@@ -36,7 +36,7 @@ fn main() {
                 println!("\nInvalid number of inputs.");
                 done = false;
                 continue;
-            }        // Parse individual strings from input into a vector
+            }
         }
         // Check that the inputs can parse as integers
         for (i,token) in tokens.iter().enumerate() {
