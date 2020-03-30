@@ -90,7 +90,7 @@ fn main() {
             if mins < 0 { break }
 
             // Clear the terminal before printing
-            print!("\x1B[2J");
+            //print!("\x1B[2J");
             
             // Display the timer unless it's the last iteration
             if mins > 0 {
