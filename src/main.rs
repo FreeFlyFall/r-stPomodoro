@@ -6,7 +6,9 @@ use std::io::BufReader;
 use rodio::Source;
 
 fn main() {
-    println!("Enter times for work, break, and long break in minutes, and the number of iterations before the long break time activates, separated by spaces.\n\ne.g. \"55 5 25 3\" to work for 55 minutes for three cycles with a 5 min break, followed by a cycle with a 25 minute break:\n");
+    println!("Enter times for work, break, and long break in minutes, and the number of iterations before \
+     the long break time activates, separated by spaces.\n\ne.g. \"55 5 25 3\" to work for 55 minutes for \
+     3 cycles with a 5 min break, followed by a cycle with a 25 minute break:\n");
 
     let (mut work_time, mut break_time, mut extended_time, mut num_iterations): (i32, i32, i32, i32) = (0,0,0,0);
 
