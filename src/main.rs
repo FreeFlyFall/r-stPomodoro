@@ -42,6 +42,11 @@ fn main() {
         for (i,token) in tokens.iter().enumerate() {
             match token.parse::<i32>(){
                 Ok(n) => {
+                    if n < 1 {
+                        println!("\n{} is an invalid time or number of iterations.",n);
+                        done = false;
+                        break;
+                    }
                     done = true;
                     if i==0 { work_time = n; }
                     else if i==1 { break_time = n; }
