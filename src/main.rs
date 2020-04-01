@@ -51,6 +51,7 @@ fn main() {
                         break;
                     }
                     done = true;
+                    // Set variables if input passed validation
                     match i {
                         0 => work_time = n,
                         1 => break_time = n,
@@ -79,7 +80,7 @@ fn main() {
             play_sound("BreakSound.wav");
             if iter_num < num_iterations {    
                 start_timer(break_time, "break");
-               play_sound("WorkSound.wav");
+                play_sound("WorkSound.wav");
             } else {
                 start_timer(extended_time, "long break");
                 play_sound("WorkSound.wav");
