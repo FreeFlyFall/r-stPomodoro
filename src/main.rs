@@ -40,7 +40,8 @@ fn main() {
                 continue;
             }
         }
-        // Check that the inputs can parse as integers
+
+        //Check that the inputs can parse as integers
         for (i,token) in tokens.iter().enumerate() {
             match token.parse::<i32>(){
                 Ok(n) => {
@@ -50,10 +51,13 @@ fn main() {
                         break;
                     }
                     done = true;
-                    if i==0 { work_time = n; }
-                    else if i==1 { break_time = n; }
-                    else if i==2 { extended_time = n; }
-                    else if i==3 { num_iterations = n; }
+                    match i {
+                        0 => work_time = n,
+                        1 => break_time = n,
+                        2 => extended_time = n,
+                        3 => num_iterations = n,
+                        _ => {}
+                    }
                 }
                 Err(_e) => {
                     println!("\n{} is not an integer.",token);
