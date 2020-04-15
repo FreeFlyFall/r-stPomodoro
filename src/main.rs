@@ -1,6 +1,6 @@
 use std::io;
 use std::io::Write; // Import flush
-use std::{thread, time};
+use std::{thread, time::Duration};
 use std::fs::File;
 use std::io::BufReader;
 use rodio::Source;
@@ -73,6 +73,11 @@ fn main() {
         break;
     }
 
+    // Clear to the bottom of the command line
+    for _i in 1..100 {
+        println!("\n");
+    }
+
     // Loop through cycles
     loop{
         for iter_num in 0..(num_iterations+1) {
@@ -102,7 +107,7 @@ fn main() {
             if mins < 0 { break }
 
             // Clear the terminal before printing
-            //print!("\x1B[2J");
+            print!("\x1B[2J");
             
             // Display the timer unless it's the last iteration
             if mins > 0 {
@@ -121,7 +126,7 @@ fn main() {
     fn display_time_and_wait(&mins: &i32, &secs: &i32, iteration_type: &str) {
         // Wait for one second in another thread
         let child = thread::spawn(move || {
-            thread::sleep(time::Duration::from_millis(1000));
+            thread::sleep(Duration::from_millis(1000));
         });
 
         // Print the time to wait in MM:SS format
