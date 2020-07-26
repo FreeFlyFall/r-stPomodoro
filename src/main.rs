@@ -53,7 +53,7 @@ fn main() {
 
         // Set variables from the input
         for (i,key) in (list).iter().enumerate() {
-            let n = key.clone().parse::<i32>().unwrap();
+            let n = key.parse::<i32>().unwrap();
             match i {
                 0 => work_time = n,
                 1 => break_time = n,
