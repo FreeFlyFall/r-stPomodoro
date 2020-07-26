@@ -12,7 +12,7 @@ fn input() -> Result<String, io::Error> {
     Ok(input)
 }
 
-// Whether the string can parse as an i32?
+// Whether the string can parse as an i32
 fn is_i32(string: &str) -> bool {
     let result = string.parse::<i32>();
     match result{ Ok(_)=> {true}, Err(_)=> {false} }
