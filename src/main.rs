@@ -52,7 +52,7 @@ fn main() {
         }
 
         // Set variables from the input
-        for (i,key) in (list).iter().enumerate() {
+        for (i,key) in list.iter().enumerate() {
             let n = key.parse::<i32>().unwrap();
             match i {
                 0 => work_time = n,
