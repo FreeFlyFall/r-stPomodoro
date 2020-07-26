@@ -5,72 +5,65 @@ use std::fs::File;
 use std::io::BufReader;
 use rodio::Source;
 
+// Get input as a string
+fn input() -> Result<String, io::Error> {
+    let mut input = String::new();
+    io::stdin().read_line(&mut input)?.to_string();
+    Ok(input)
+}
+
+// Whether the string can parse as an i32?
+fn is_i32(string: &str) -> bool {
+    let result = string.parse::<i32>();
+    match result{ Ok(_)=> {true}, Err(_)=> {false} }
+}
+
+// Whether the string, parsed as an i32, is > 0
+fn is_positive(string: &str) -> bool {
+    let result = if string.parse::<i32>().unwrap() > 0 {true} else {false};
+    result
+}
+
 fn main() {
     println!("Enter times for work, break, and long break in minutes, and the number of iterations before \
      the long break time activates, separated by spaces.\n\ne.g. \"55 5 25 3\" to work for 55 minutes for \
      3 cycles with a 5 min break, followed by a cycle with a 25 minute break:\n");
-
+    
+    // Set up variables to handle input data
     let (mut work_time, mut break_time, mut extended_time, mut num_iterations): (i32, i32, i32, i32) = (0,0,0,0);
 
-    let mut done: bool = true;
+    // Loop to collect input until it's valid
     loop {
-        // Tell the user to retry if there was a failure
-        if done == false {
-            print!("Retry: ");
-            // Ensure that the print macro prints
-            io::stdout().flush().unwrap();  
-        }
-
-        // Get input
-        let mut input = String::new();
-        match io::stdin().read_line(&mut input) {
-            Ok(_b) => {}
-            Err(error) => println!("Error: {}", error),
-        }
+        let input = input().unwrap();
 
         // Parse individual strings from input into a vector
-        let tokens:Vec<&str>= input.trim().split(" ").collect();
+        let list: Vec<&str> = input
+            .trim() // Remove any padding spaces
+            .split(" ") // Use a space as a delimiter
+            .filter(|s| is_i32(s)) // Take only integers
+            .filter(|s| is_positive(s)) // Take only positive numbers
+            .take(4) // Take the first 4 inputs that pass the filters
+            .collect();
+        
+        // Restart the loop if input is invalid
+        if list.len() < 4 {
+            print!("Retry: "); io::stdout().flush().unwrap(); // Ensure that the print macro prints
+            continue
+        }
 
-        // Check that there are 4 inputs
-        match tokens.get(3) {
-            Some(_n) => {}
-            None => {
-                println!("\nInvalid number of inputs.");
-                done = false;
-                continue;
+        // Set variables from the input
+        for (i,key) in (list).iter().enumerate() {
+            let n = key.clone().parse::<i32>().unwrap();
+            match i {
+                0 => work_time = n,
+                1 => break_time = n,
+                2 => extended_time = n,
+                3 => num_iterations = n,
+                _ => {}
             }
         }
 
-        //Check that the inputs can parse as integers
-        for (i,token) in tokens.iter().enumerate() {
-            match token.parse::<i32>(){
-                Ok(n) => {
-                    if n < 1 {
-                        println!("\n{} is an invalid time or number of iterations.",n);
-                        done = false;
-                        break;
-                    }
-                    done = true;
-                    // Set variables if input passed validation
-                    match i {
-                        0 => work_time = n,
-                        1 => break_time = n,
-                        2 => extended_time = n,
-                        3 => num_iterations = n,
-                        _ => {}
-                    }
-                }
-                Err(_e) => {
-                    println!("\n{} is not an integer.",token);
-                    done = false;
-                    break;
-                }
-            }
-        }
-        if done == false { continue; }
-
-        println!("\nWork: {} mins\nBreak: {} mins\nExtended: {} mins\nIterations: {}\n",work_time, break_time, extended_time, num_iterations);
-        break;
+        break
     }
 
     // Clear to the bottom of the command line
@@ -103,12 +96,9 @@ fn main() {
                 mins -= 1;
                 secs = 59;
             }
-            // If the time is expired, don't wait or print the time
+            // If the time has expired, don't wait or print the time
             if mins < 0 { break }
 
-            // Clear the terminal before printing
-            print!("\x1B[2J");
-            
             // Display the timer unless it's the last iteration
             if mins > 0 {
                 display_time_and_wait(&mins, &secs, iteration_type);
@@ -119,7 +109,7 @@ fn main() {
             }
             // Subract a second before restarting the loop
             secs -= 1; 
-        } 
+        }
     }
     
     // Display formatted time and wait one second
