@@ -15,13 +15,25 @@ fn input() -> Result<String, io::Error> {
 // Whether the string can parse as an i32
 fn is_i32(string: &str) -> bool {
     let result = string.parse::<i32>();
-    match result{ Ok(_)=> {true}, Err(_)=> {false} }
+    match result {
+        Ok(_)=> {
+            true
+        },
+        Err(_)=> {
+            println!("{} is not an integer\n", string);
+            false
+        }
+    }
 }
 
 // Whether the string, parsed as an i32, is > 0
 fn is_positive(string: &str) -> bool {
-    let result = if string.parse::<i32>().unwrap() > 0 {true} else {false};
-    result
+    if string.parse::<i32>().unwrap() > 0 {
+        true
+    } else {
+        println!("{} is not a positive integer\n", string);
+        false
+    }
 }
 
 fn main() {
@@ -45,25 +57,23 @@ fn main() {
             .take(4) // Take the first 4 inputs that pass the filters
             .collect();
         
-        // Restart the loop if input is invalid
-        if list.len() < 4 {
-            print!("Retry: "); io::stdout().flush().unwrap(); // Ensure that the print macro prints
-            continue
-        }
-
-        // Set variables from the input
-        for (i,key) in list.iter().enumerate() {
-            let n = key.parse::<i32>().unwrap();
-            match i {
-                0 => work_time = n,
-                1 => break_time = n,
-                2 => extended_time = n,
-                3 => num_iterations = n,
-                _ => {}
+        // Build the list if it's valid. Otherwise, retry.
+        if list.len() >= 4 {
+            // Set variables from the input
+            for (i,key) in list.iter().enumerate() {
+                let n = key.parse::<i32>().unwrap();
+                match i {
+                    0 => work_time = n,
+                    1 => break_time = n,
+                    2 => extended_time = n,
+                    3 => num_iterations = n,
+                    _ => {}
+                }
             }
+            break
+        } else {
+            print!("Retry: "); io::stdout().flush().unwrap(); // Ensure that the print macro prints
         }
-
-        break
     }
 
     // Clear to the bottom of the command line
