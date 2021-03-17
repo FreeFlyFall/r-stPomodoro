@@ -116,13 +116,10 @@ fn main() {
     loop{
         for iter_num in 0..(num_iterations+1) {
             start_timer(work_time, "work");
-            play_sound("BreakSound.wav");
             if iter_num < num_iterations {    
                 start_timer(break_time, "break");
-                play_sound("WorkSound.wav");
             } else {
                 start_timer(extended_time, "long break");
-                play_sound("WorkSound.wav");
             }
         }
     }
@@ -146,6 +143,11 @@ fn main() {
                             display_minutes += 1; // For a non-fractional minute, don't floor the minute value
                         }
                         if elapsed_seconds == total_seconds {
+                            if iteration_type == "work" {
+                                play_sound("BreakSound.wav");
+                            } else {
+                                play_sound("WorkSound.wav");
+                            }
                             break; // Break from the loop if the last second has been reached
                         }
                         display_time(&display_minutes, &display_seconds, iteration_type);
