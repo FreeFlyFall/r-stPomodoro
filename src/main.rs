@@ -26,7 +26,7 @@ fn is_i32(string: &str) -> bool {
     }
 }
 
-// Whether the minutes entered are under a workday. Prevents overflowing the i32 which holds total seconds.
+// Whether the minutes entered are under a day. Prevents overflowing the i32 which holds total seconds.
 fn is_under_day(string: &str) -> bool {
     let result = string.parse::<i32>();
     match result {
@@ -54,6 +54,16 @@ fn is_positive(string: &str) -> bool {
     }
 }
 
+fn confirm() -> bool {
+    print!("Continue? (Y): "); io::stdout().flush().unwrap();
+    let input = input().unwrap();
+    if input == "\n" || input == "\r\n" || input.trim().to_lowercase() == "y" {
+        true
+    } else {
+        false
+    }
+}
+
 fn main() {
     println!("Enter times for work, break, and long break in minutes, and the number of iterations before \
      the long break time activates, separated by spaces.\n\ne.g. \"55 5 25 3\" to work for 55 minutes for \
@@ -64,6 +74,7 @@ fn main() {
 
     // Loop to collect input until it's valid
     loop {
+        print!("> "); io::stdout().flush().unwrap(); // Ensure that the print macro prints
         let input = input().unwrap();
 
         // Parse individual strings from input into a vector
@@ -89,9 +100,12 @@ fn main() {
                     _ => {}
                 }
             }
-            break
+            println!("Work: {}, Break: {}, Long Break: {}, Iterations: {}", work_time, break_time, extended_time, num_iterations);
+            if confirm() {
+                break;
+            }
         } else {
-            print!("Retry: "); io::stdout().flush().unwrap(); // Ensure that the print macro prints
+            print!("Retry: "); io::stdout().flush().unwrap();
         }
     }
 
