@@ -104,8 +104,6 @@ fn main() {
             if confirm() {
                 break;
             }
-        } else {
-            print!("Retry: "); io::stdout().flush().unwrap();
         }
     }
 
