@@ -26,6 +26,24 @@ fn is_i32(string: &str) -> bool {
     }
 }
 
+// Whether the minutes entered are under a workday. Prevents overflowing the i32 which holds total seconds.
+fn is_under_day(string: &str) -> bool {
+    let result = string.parse::<i32>();
+    match result {
+        Ok(number)=> {
+            if number < 24 * 60 {
+                true
+            } else {
+                println!("{} minutes is more than 24 hours\n", number);    
+                false 
+            }
+        },
+        Err(_)=> {
+            false
+        }  
+    }
+}
+
 // Whether the string, parsed as an i32, is > 0
 fn is_positive(string: &str) -> bool {
     if string.parse::<i32>().unwrap() > 0 {
@@ -54,6 +72,7 @@ fn main() {
             .split(" ") // Use a space as a delimiter
             .filter(|s| is_i32(s)) // Take only integers
             .filter(|s| is_positive(s)) // Take only positive numbers
+            .filter(|s| is_under_day(s)) // Take only periods under a day
             .take(4) // Take the first 4 inputs that pass the filters
             .collect();
         
@@ -104,7 +123,7 @@ fn main() {
         loop {
             match now.elapsed() {
                 Ok(elapsed) => {
-                    let time = elapsed.as_secs() as i32; // Get accumulative time since timer start
+                    let time = elapsed.as_secs() as i32; // Get cumulative time since timer start
                     if time > elapsed_seconds { // If the second has incremented
                         elapsed_seconds += time - elapsed_seconds; // Add the difference in seconds to the second counter
                         // Get minutes value to display. Total minutes minus minutes elapsed, then minus one to account for the fractional minute held in the seconds variable.
