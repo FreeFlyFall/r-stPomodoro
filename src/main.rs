@@ -1,6 +1,6 @@
 use std::io;
 use std::io::Write; // Import flush
-use std::{thread, time::Duration};
+use std::{thread::sleep, time::Duration, time::SystemTime};
 use std::fs::File;
 use std::io::BufReader;
 use rodio::Source;
@@ -96,46 +96,44 @@ fn main() {
         }
     }
 
-    fn start_timer(mut mins: i32, iteration_type: &str) {
-        // Define a variables for seconds
-        let mut secs: i32 = 0;
-        // For every minute of this cycle
-        while mins >= 0 {
-            // Decrement a minute and reset the seconds
-            if secs < 0 {  
-                mins -= 1;
-                secs = 59;
+    fn start_timer(mins: i32, iteration_type: &str) {
+        let now = SystemTime::now();
+        let total_seconds: i32 = mins * 60; // Total time as seconds
+        let mut elapsed_seconds: i32 = 0; // Variable to keep track of elapsed seconds
+        display_time(&mins, &elapsed_seconds, iteration_type); // Display time initially
+        loop {
+            match now.elapsed() {
+                Ok(elapsed) => {
+                    let time = elapsed.as_secs() as i32; // Get accumulative time since timer start
+                    if time > elapsed_seconds { // If the second has incremented
+                        elapsed_seconds += time - elapsed_seconds; // Add the difference in seconds to the second counter
+                        // Get minutes value to display. Total minutes minus minutes elapsed, then minus one to account for the fractional minute held in the seconds variable.
+                        let mut display_minutes = mins - elapsed_seconds / 60 - 1;
+                        // Get seconds value to display. Take the total seconds minus elapsed seconds, then the remainder of that value divided by 60 seconds.
+                        let display_seconds = (total_seconds - elapsed_seconds) % 60;
+                        if display_seconds == 0 {
+                            display_minutes += 1; // For a non-fractional minute, don't floor the minute value
+                        }
+                        if elapsed_seconds == total_seconds {
+                            break; // Break from the loop if the last second has been reached
+                        }
+                        display_time(&display_minutes, &display_seconds, iteration_type);
+                    }
+                }
+                Err(e) => {
+                    println!("Error: {:?}", e);
+                }
             }
-            // If the time has expired, don't wait or print the time
-            if mins < 0 { break }
-
-            // Display the timer unless it's the last iteration
-            if mins > 0 {
-                display_time_and_wait(&mins, &secs, iteration_type);
-            } else if secs > 0 {
-                display_time_and_wait(&mins,&secs, iteration_type);
-            } else {
-                break;
-            }
-            // Subract a second before restarting the loop
-            secs -= 1; 
+            sleep(Duration::from_millis(100)); // Polling rate
         }
     }
     
     // Display formatted time and wait one second
-    fn display_time_and_wait(&mins: &i32, &secs: &i32, iteration_type: &str) {
-        // Wait for one second in another thread
-        let child = thread::spawn(move || {
-            thread::sleep(Duration::from_millis(1000));
-        });
-
-        // Print the time to wait in MM:SS format
+    fn display_time(&mins: &i32, &secs: &i32, iteration_type: &str) {
+        //Print the time to wait in MM:SS format
         let display_mins: String = if mins < 10 { format!("0{}",mins.to_string()) } else { format!("{}",mins.to_string()) };
         let display_secs: String = if secs < 10 { format! ("0{}",secs.to_string()) } else { format! ("{}",secs.to_string()) };
         println!("{}:{} {}",display_mins,display_secs, iteration_type);
-        
-        // Wait for the sleeping thread
-        let _res = child.join();
     }
 
     fn play_sound(file_name: &str) {
