@@ -143,11 +143,11 @@ fn main() {
                             display_minutes += 1; // For a non-fractional minute, don't floor the minute value
                         }
                         if elapsed_seconds == total_seconds {
-                            if iteration_type == "work" {
-                                play_sound("BreakSound.wav");
-                            } else {
-                                play_sound("WorkSound.wav");
-                            }
+                            play_sound(if iteration_type=="work" {
+                                "BreakSound.wav"
+                            } else { 
+                                "WorkSound.wav" 
+                            });
                             break; // Break from the loop if the last second has been reached
                         }
                         display_time(&display_minutes, &display_seconds, iteration_type);
