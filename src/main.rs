@@ -20,7 +20,7 @@ fn is_i32(string: &str) -> bool {
             true
         },
         Err(_)=> {
-            println!("{} is not an integer\n", string);
+            println!("{} is not a 32 bit integer\n", string);
             false
         }
     }
