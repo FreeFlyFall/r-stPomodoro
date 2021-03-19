@@ -153,7 +153,7 @@ fn main() {
         }
     }
     
-    // Display formatted time and wait one second
+    // Display formatted time 
     fn display_time(&mins: &i32, &secs: &i32, iteration_type: &str) {
         //Print the time to wait in MM:SS format
         let display_mins: String = if mins < 10 { format!("0{}",mins.to_string()) } else { format!("{}",mins.to_string()) };
