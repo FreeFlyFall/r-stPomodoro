@@ -106,7 +106,7 @@ fn main() {
 
     // Loop through cycles
     loop{
-        for iter_num in 0..(num_iterations+1) {
+        for iter_num in 0..=(num_iterations) { // Inclusive
             start_timer(work_time, "work");
             if iter_num < num_iterations {    
                 start_timer(break_time, "break");
