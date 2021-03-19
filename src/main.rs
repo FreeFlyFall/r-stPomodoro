@@ -28,19 +28,11 @@ fn is_i32(string: &str) -> bool {
 
 // Whether the minutes entered are under a day. Prevents overflowing the i32 which holds total seconds.
 fn is_under_day(string: &str) -> bool {
-    let result = string.parse::<i32>();
-    match result {
-        Ok(number)=> {
-            if number < 24 * 60 {
-                true
-            } else {
-                println!("{} minutes is more than 24 hours\n", number);    
-                false 
-            }
-        },
-        Err(_)=> {
-            false
-        }  
+    if string.parse::<i32>().unwrap() < 24 * 60 {
+        true
+    } else {
+        println!("{} minutes is more than 24 hours\n", string);    
+        false 
     }
 }
 
@@ -56,7 +48,7 @@ fn is_positive(string: &str) -> bool {
 
 fn confirm() -> bool {
     print!("Continue? (Y): "); io::stdout().flush().unwrap();
-    let input = input().unwrap();
+    let input: String = input().unwrap();
     if input == "\n" || input == "\r\n" || input.trim().to_lowercase() == "y" {
         true
     } else {
@@ -75,7 +67,7 @@ fn main() {
     // Loop to collect input until it's valid
     loop {
         print!("> "); io::stdout().flush().unwrap(); // Ensure that the print macro prints
-        let input = input().unwrap();
+        let input: String = input().unwrap();
 
         // Parse individual strings from input into a vector
         let list: Vec<&str> = input
@@ -136,9 +128,9 @@ fn main() {
                     if time > elapsed_seconds { // If the second has incremented
                         elapsed_seconds += time - elapsed_seconds; // Add the difference in seconds to the second counter
                         // Get minutes value to display. Total minutes minus minutes elapsed, then minus one to account for the fractional minute held in the seconds variable.
-                        let mut display_minutes = mins - elapsed_seconds / 60 - 1;
+                        let mut display_minutes: i32 = mins - elapsed_seconds / 60 - 1;
                         // Get seconds value to display. Take the total seconds minus elapsed seconds, then the remainder of that value divided by 60 seconds.
-                        let display_seconds = (total_seconds - elapsed_seconds) % 60;
+                        let display_seconds: i32 = (total_seconds - elapsed_seconds) % 60;
                         if display_seconds == 0 {
                             display_minutes += 1; // For a non-fractional minute, don't floor the minute value
                         }
