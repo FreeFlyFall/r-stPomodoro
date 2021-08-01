@@ -24,11 +24,12 @@ impl Timer {
 
     pub fn value(&self) -> String {
         let elapsed: u32 = self.start_time.elapsed().as_secs() as u32;
+        elapsed += 1;
         let mut hours: u32 = (self.total_seconds / 60 / 60 - elapsed / 60 / 60);
         let mut minutes: u32 = ((self.total_seconds / 60 - elapsed / 60) % 60);
         let seconds: u32 = (self.total_seconds - elapsed) % 60;
 
-        //println!("times: {}:{}:{}", hours, minutes, seconds);
+        println!("times: {}:{}:{}", self.total_seconds, self.total_seconds/60/60, seconds);
 
         let display_hours: String = Timer::format_time(&hours,false);
         let display_minutes: String = Timer::format_time(&minutes,false);
