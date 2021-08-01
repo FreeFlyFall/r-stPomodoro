@@ -19,7 +19,9 @@ fn input() -> Result<String, io::Error> {
 }
 
 fn confirm() -> bool {
-    print!("Continue? (Y): "); io::stdout().flush().unwrap();
+    print!("Continue? (Y): ");
+    io::stdout().flush().unwrap();
+
     let input: String = input().unwrap();
     if input == "\n" || input == "\r\n" || input.trim().to_lowercase() == "y" {
         true
@@ -150,9 +152,8 @@ fn main() {
         }
 
         // Validate and assign time periods
-        let time_periods: Vec<&str> = vec![tokens[0], tokens[1], tokens[3]];
         let mut is_valid: bool = true;
-        for (i, time_period) in time_periods.iter().enumerate() {
+        for (i, time_period) in vec![tokens[0], tokens[1], tokens[3]].iter().enumerate() {
             if valid_time_format(time_period) {
                 match i {
                     0 => work_time = get_total_seconds(*time_period),
@@ -161,7 +162,7 @@ fn main() {
                     _ => {}
                 }
             } else {
-                println!("{} is an invalid time period.", time_period);
+                println!("\n{} is an invalid time period.", time_period);
                 is_valid = false;
                 break;
             }
@@ -174,7 +175,7 @@ fn main() {
         match tokens[2].parse::<u32>() {
             Ok(n) => { num_iterations = n; }
             Err(_) => {
-                println!("{} is an invalid number of iterations.", tokens[2]);
+                println!("\n{} is an invalid number of iterations.", tokens[2]);
                 continue;
             }
         }
@@ -192,25 +193,33 @@ fn main() {
     }
 
     // Loop through cycles
-    //loop{
-    //    for iter_num in 0..=(num_iterations) { // Inclusive
-    //        start_timer(work_time, "work");
-    //        if iter_num < num_iterations {    
-    //            start_timer(break_time, "break");
-    //        } else {
-    //            start_timer(extended_time, "long break");
-    //        }
-    //    }
-    //}
+    loop{
+       for iter_num in 0..=(num_iterations) { // Inclusive
+           start_timer(work_time, "work");
+           if iter_num < num_iterations {    
+               start_timer(break_time, "break");
+           } else {
+               start_timer(extended_time, "long break");
+           }
+       }
+    }
 
-//    fn start_timer(mins: i32, iteration_type: &str) {
-        //let timer = Timer {
-        //    start_time: SystemTime::now(),
-        //    total_seconds: mins * 60,
-        //    current_second: 0
-        //};
+    fn start_timer(total_seconds: u32, iteration_type: &str) {
+        let mut timer = Timer::new(Instant::now(), total_seconds);
+        println!("{} {}", timer.value(), iteration_type);
+        while !timer.is_done() {
+            if timer.is_next_second() {
+                println!("{} {}", timer.value(), iteration_type);
+            }
+            sleep(Duration::from_millis(100)); // Polling rate
+        }
+        play_sound(if iteration_type=="work" {
+            "BreakSound.wav"
+        } else { 
+            "WorkSound.wav" 
+        });
         //display_time(&mins, &timer.current_second, iteration_type); // Display time initially
-        //loop {
+        // loop {
         //    match start_time.elapsed() {
         //        Ok(elapsed) => {
         //            let time = elapsed.as_secs() as i32; // Get cumulative time since timer start
@@ -239,15 +248,7 @@ fn main() {
         //        }
         //    }
         //    sleep(Duration::from_millis(100)); // Polling rate
-        //}
-    //}
-    
-    // Display formatted time 
-    fn display_time(&mins: &i32, &secs: &i32, iteration_type: &str) {
-        //Print the time to wait in MM:SS format
-        let display_mins: String = if mins < 10 { format!("0{}",mins.to_string()) } else { format!("{}",mins.to_string()) };
-        let display_secs: String = if secs < 10 { format! ("0{}",secs.to_string()) } else { format! ("{}",secs.to_string()) };
-        println!("{}:{} {}",display_mins,display_secs, iteration_type);
+        // }
     }
 
     fn play_sound(file_name: &str) {
