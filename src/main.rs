@@ -31,30 +31,30 @@ fn confirm() -> bool {
 // To-do: Change regexes to use crate lazy static macro
 
 // Input must be input in the format #h#, #h#m, #h, #m, or #
-// The total time in seconds must fit in a u16
-fn validate_time_format(s: &str) -> bool {
+// The total time in seconds must fit in a u32
+fn valid_time_format(s: &str) -> bool {
     // Check format
     let re = Regex::new(r"^\d+$|^\d+h$|^\d+h\d+$|^\d+m$|^\d+h\d+m$").unwrap();
     if !re.is_match(s) {
         return false
     }
     
-    let mut hours: u16 = 0;
+    let mut hours: u32 = 0;
     match get_hours(s) {
         Ok(n) => { hours = n; },
         Err(_) => {}
     }
-    let mut minutes: u16 = 0;
+    let mut minutes: u32 = 0;
     match get_minutes(s) {
         Ok(n) => { minutes = n; },
         Err(_) => {}
     }
-    let mut hours_as_seconds: u16 = 0;
+    let mut hours_as_seconds: u32 = 0;
     match hours.checked_mul(60*60) {
         Some(n) => { hours_as_seconds = n; }
         None => { return false }
     }
-    let mut minutes_as_seconds: u16 = 0;
+    let mut minutes_as_seconds: u32 = 0;
     match minutes.checked_mul(60) {
         Some(n) => { minutes_as_seconds = n; }
         None => { return false }
@@ -71,60 +71,58 @@ fn validate_time_format(s: &str) -> bool {
     }
 }
 
-fn get_total_seconds(s: &str) -> u16 {
-    let mut hours: u16 = 0;
+// Get total seconds from hours and minutes, which has already been checked for an overflow.
+fn get_total_seconds(s: &str) -> u32 {
+    let mut hours: u32 = 0;
     match get_hours(s) {
         Ok(n) => { hours = n; },
         Err(_) => {} // No hours were input, leave as 0
     }
-    let mut minutes: u16 = 0;
+    let mut minutes: u32 = 0;
     match get_minutes(s) {
         Ok(n) => { minutes = n; },
         Err(_) => {} // No minutes were input, leave as 0
     }
-    let hours_as_seconds: u16 = hours * 60 * 60;
-    let minutes_as_seconds: u16 = minutes * 60;
-    println!("secs: {}",hours_as_seconds + minutes_as_seconds);
+    let hours_as_seconds: u32 = hours * 60 * 60;
+    let minutes_as_seconds: u32 = minutes * 60;
+    //println!("secs: {}",hours_as_seconds + minutes_as_seconds);
     hours_as_seconds + minutes_as_seconds
 }
 
 //// To-do: Add case insensitivity for h and m chars
-fn get_hours(s: &str) -> Result<u16, &'static str> {
+fn get_hours(s: &str) -> Result<u32, &'static str> {
     let re = Regex::new(r"\d+h").unwrap();
     match re.find(s) {
         Some(s) => {
             let hours_str = s.as_str().replace("h","");
-            match hours_str.parse::<u16>() {
-                Ok(n) => {
-                    Ok(n)
-                }
-                Err(_) => {
-                    Err("Err")
-                }
+            match hours_str.parse::<u32>() {
+                Ok(n) => { Ok(n) }
+                Err(_) => { Err("Err") }
             }
         },
-        None => {
-            Err("Err")
-        }
+        None => { Err("Err") }
     }
 }
-fn get_minutes(s: &str) -> Result<u16, &'static str> {
+fn get_minutes(s: &str) -> Result<u32, &'static str> {
     let re = Regex::new(r"\d+m|\d+$").unwrap();
     match re.find(s) {
         Some(s) => {
             let hours_str = s.as_str().replace("m","");
-            match hours_str.parse::<u16>() {
-                Ok(n) => {
-                    Ok(n)
-                }
-                Err(_) => {
-                    Err("Err")
-                }
+            match hours_str.parse::<u32>() {
+                Ok(n) => { Ok(n) }
+                Err(_) => { Err("Err") }
             }
         },
-        None => {
-            Err("Err")
-        }
+        None => { Err("Err") }
+    }
+}
+
+// Whether the string can parse as an i32
+fn is_u32(string: &str) -> bool {
+    let result = string.parse::<u32>();
+    match result {
+        Ok(_)=> { true },
+        Err(_)=> { false }
     }
 }
 
@@ -134,12 +132,7 @@ fn main() {
     // 3 cycles with a 5 min break, followed by a cycle with a 25 minute break:\n");
     
     // Set up variables to handle input data
-    let (mut work_time, mut break_time, mut extended_time, mut num_iterations): (i32, i32, i32, i32) = (0,0,0,0);
-
-    // filter each input on regex
-    // parse hours/mins from inputs
-    // change to use u64
-    //
+    let (mut work_time, mut break_time, mut extended_time, mut num_iterations): (u32, u32, u32, u32) = (0,0,0,0);
 
     // Loop to collect input until it's valid
     loop {
@@ -147,34 +140,50 @@ fn main() {
         io::stdout().flush().unwrap(); // Ensure that the print macro prints
 
         let input: String = input().unwrap();
+        let tokens: Vec<&str> = input.trim().split(" ").collect();
+        match tokens.get(3) {
+            Some(_) => {}
+            None => {
+                println!("\nInvalid number of inputs.");
+                continue;
+            }
+        }
 
-        // Parse individual strings from input into a vector
-        let list: Vec<u16> = input
-            .trim() // Remove any padding spaces
-            .split(" ") // Use a space as a delimiter
-            .filter(|s| validate_time_format(s))
-            .map(|s| get_total_seconds(s))
-            .take(4) // Take the first 4 inputs that pass the filters
-            .collect();
-        
-        //// Build the list if it's valid. Otherwise, retry.
-        //if list.len() >= 4 {
-        //    // Set variables from the input
-        //    for (i,key) in list.iter().enumerate() {
-        //        let n = key.parse::<i32>().unwrap();
-        //        match i {
-        //            0 => work_time = n,
-        //            1 => break_time = n,
-        //            2 => extended_time = n,
-        //            3 => num_iterations = n,
-        //            _ => {}
-        //        }
-        //    }
-        //    println!("Work: {}, Break: {}, Long Break: {}, Iterations: {}", work_time, break_time, extended_time, num_iterations);
-        //    if confirm() {
-        //        break;
-        //    }
-        //}
+        // Validate and assign time periods
+        let time_periods: Vec<&str> = vec![tokens[0], tokens[1], tokens[3]];
+        let mut is_valid: bool = true;
+        for (i, time_period) in time_periods.iter().enumerate() {
+            if valid_time_format(time_period) {
+                match i {
+                    0 => work_time = get_total_seconds(*time_period),
+                    1 => break_time = get_total_seconds(*time_period),
+                    2 => extended_time = get_total_seconds(*time_period),
+                    _ => {}
+                }
+            } else {
+                println!("{} is an invalid time period.", time_period);
+                is_valid = false;
+                break;
+            }
+        }
+        if !is_valid {
+            continue;
+        }
+
+        // Validate and assign iterations
+        match tokens[2].parse::<u32>() {
+            Ok(n) => { num_iterations = n; }
+            Err(_) => {
+                println!("{} is an invalid number of iterations.", tokens[2]);
+                continue;
+            }
+        }
+
+        // Confirm input
+        println!("Work: {}, Break: {}, Long Break: {}, Iterations: {}", work_time, break_time, extended_time, num_iterations);
+        if confirm() {
+            break;
+        }
     }
 
     // Clear to the bottom of the command line
