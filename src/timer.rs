@@ -1,4 +1,5 @@
-use std::time::Instant; 
+use std::time::Instant;
+use math::round;
 
 pub struct Timer {
     pub start_time: Instant,
@@ -24,17 +25,18 @@ impl Timer {
 
     pub fn value(&self) -> String {
         let elapsed: u32 = self.start_time.elapsed().as_secs() as u32;
-        elapsed += 1;
-        let mut hours: u32 = (self.total_seconds / 60 / 60 - elapsed / 60 / 60);
-        let mut minutes: u32 = ((self.total_seconds / 60 - elapsed / 60) % 60);
+
         let seconds: u32 = (self.total_seconds - elapsed) % 60;
+        let minutes: u32 = round::floor((self.total_seconds as f64 / 60 as f64 - elapsed as f64 / 60 as f64) % 60 as f64, 0) as u32;
+        let mut hours: u32 = round::floor(self.total_seconds as f64 / 3600 as f64 - elapsed  as f64 / 3600 as f64, 0) as u32;
+        if seconds == 0 && minutes == 0 && elapsed != 0 {
+            hours += 1
+        }
 
-        println!("times: {}:{}:{}", self.total_seconds, self.total_seconds/60/60, seconds);
+        let display_hours: String = Timer::format_time(&hours);
+        let display_minutes: String = Timer::format_time(&minutes);
+        let display_seconds: String = Timer::format_time(&seconds);
 
-        let display_hours: String = Timer::format_time(&hours,false);
-        let display_minutes: String = Timer::format_time(&minutes,false);
-        let display_seconds: String = Timer::format_time(&seconds,true);
-        
         let display_time: String = "".to_owned() +
         &display_hours +
         if display_hours.is_empty() {""} else {":"} + 
@@ -49,11 +51,7 @@ impl Timer {
         self.start_time.elapsed().as_secs() as u32 >= self.total_seconds
     }
 
-    fn format_time(&time: &u32, no_blank: bool) -> String {
-        if !no_blank && time == 0 {
-            "".to_string()
-        }
-        else
+    fn format_time(&time: &u32) -> String {
         if time < 10 {
             format!("0{}",time.to_string())
         } else {
