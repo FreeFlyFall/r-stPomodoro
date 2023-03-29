@@ -234,7 +234,7 @@ async fn main() {
 
 async fn start_timer(total_seconds: u32, iteration_type: &str) {
     let mut timer = Timer::new(Instant::now(), total_seconds);
-    println!("{} {}", timer.value(), iteration_type);
+    // println!("{} {}", timer.value(), iteration_type);
     // while !timer.is_done() {
     //     if timer.is_next_second() {
     //         println!("{} {}", timer.value(), iteration_type);
