@@ -150,6 +150,7 @@ async fn main() {
         println!("Doing some work... {}", i);
         tokio::time::sleep(Duration::from_secs(1)).await;
     }
+    join_handle.await;
 }
 
 // #[tokio::main]
