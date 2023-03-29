@@ -1,13 +1,14 @@
 mod timer;
 use timer::Timer;
 
+use tokio;
 use std::io;
 use std::io::Write; // Import flush
 use std::{thread::sleep, time::Duration, time::Instant};
 use regex::Regex;
 use std::fs::File;
 use std::io::BufReader;
-use rodio::Source;
+use rodio::{source::Source, Decoder, OutputStream, Sink};
 
 /*
 Enter times for work, break, and long break in minutes, and the number of iterations before the long break time activates, separated by spaces.
@@ -127,103 +128,130 @@ fn get_minutes(s: &str) -> Result<u32, &'static str> {
     }
 }
 
-fn main() {
-    println!("Enter times for work, break, and long break in minutes, and the number of iterations before \
-    the long break time activates, separated by spaces.\n\ne.g. \"1h45 15 30 3\" to work for 1 hour 45 minutes \
-    with a 15 min break, and a 30 minutes break after 3 cycles:\n");
+#[tokio::main]
+async fn main() {
+    // Load the sound file
+    let file = File::open("sound.wav").unwrap();
+    let source = Decoder::new(BufReader::new(file)).unwrap();
+
+    // Create an output stream and sink
+    let (stream, stream_handle) = OutputStream::try_default().unwrap();
+    let sink = Sink::try_new(&stream_handle).unwrap();
     
-    // Define variables to handle input data
-    let (mut work_time, mut break_time, mut extended_time): (u32, u32, u32) = (0,0,0);
-    let mut num_iterations: u32;
+    let join_handle = tokio::spawn(async move {
+        // Add the sound to the sink
+        sink.append(source);
+        // Wait for the duration of the sound
+        sink.sleep_until_end();
+    });
 
-    // Loop to collect input until it's valid
-    loop {
-        print!("> ");
-        io::stdout().flush().unwrap(); // Ensure that the print macro prints
-
-        let input: String = input().unwrap();
-        let tokens: Vec<&str> = input.trim().split(" ").collect();
-        match tokens.get(3) {
-            Some(_) => {}
-            None => {
-                println!("\nInvalid number of inputs.");
-                continue;
-            }
-        }
-
-        // Validate and assign time periods
-        let mut is_valid: bool = true;
-        for (i, time_period) in vec![tokens[0], tokens[1], tokens[3]].iter().enumerate() {
-            if valid_time_format(time_period) {
-                match i {
-                    0 => work_time = get_total_seconds(time_period),
-                    1 => break_time = get_total_seconds(time_period),
-                    2 => extended_time = get_total_seconds(time_period),
-                    _ => {}
-                }
-            } else {
-                println!("\n{} is an invalid time period.", time_period);
-                is_valid = false;
-                break;
-            }
-        }
-        if !is_valid {
-            continue;
-        }
-
-        // Validate and assign iterations
-        match tokens[2].parse::<u32>() {
-            Ok(n) => { num_iterations = n; }
-            Err(_) => {
-                println!("\n{} is an invalid number of iterations.", tokens[2]);
-                continue;
-            }
-        }
-
-        // Confirm input
-        println!("Work: {}, Break: {}, Long Break: {}, Iterations: {}", work_time, break_time, extended_time, num_iterations);
-        if confirm() {
-            break;
-        }
+    // Do some other work while the sound is playing
+    for i in 0..10 {
+        println!("Doing some work... {}", i);
+        tokio::time::sleep(Duration::from_secs(1)).await;
     }
+}
 
-    // Clear to the bottom of the command line
-    for _i in 1..100 {
-        println!("\n");
-    }
+// #[tokio::main]
+// async fn main() {
+//     println!("Enter times for work, break, and long break in minutes, and the number of iterations before \
+//     the long break time activates, separated by spaces.\n\ne.g. \"1h45 15 30 3\" to work for 1 hour 45 minutes \
+//     with a 15 min break, and a 30 minutes break after 3 cycles:\n");
+//     
+//     // Define variables to handle input data
+//     let (mut work_time, mut break_time, mut extended_time): (u32, u32, u32) = (0,0,0);
+//     let mut num_iterations: u32;
+//
+//     // Loop to collect input until it's valid
+//     loop {
+//         print!("> ");
+//         io::stdout().flush().unwrap(); // Ensure that the print macro prints
+//
+//         let input: String = input().unwrap();
+//         let tokens: Vec<&str> = input.trim().split(" ").collect();
+//         match tokens.get(3) {
+//             Some(_) => {}
+//             None => {
+//                 println!("\nInvalid number of inputs.");
+//                 continue;
+//             }
+//         }
+//
+//         // Validate and assign time periods
+//         let mut is_valid: bool = true;
+//         for (i, time_period) in vec![tokens[0], tokens[1], tokens[3]].iter().enumerate() {
+//             if valid_time_format(time_period) {
+//                 match i {
+//                     0 => work_time = get_total_seconds(time_period),
+//                     1 => break_time = get_total_seconds(time_period),
+//                     2 => extended_time = get_total_seconds(time_period),
+//                     _ => {}
+//                 }
+//             } else {
+//                 println!("\n{} is an invalid time period.", time_period);
+//                 is_valid = false;
+//                 break;
+//             }
+//         }
+//         if !is_valid {
+//             continue;
+//         }
+//
+//         // Validate and assign iterations
+//         match tokens[2].parse::<u32>() {
+//             Ok(n) => { num_iterations = n; }
+//             Err(_) => {
+//                 println!("\n{} is an invalid number of iterations.", tokens[2]);
+//                 continue;
+//             }
+//         }
+//
+//         // Confirm input
+//         println!("Work: {}, Break: {}, Long Break: {}, Iterations: {}", work_time, break_time, extended_time, num_iterations);
+//         if confirm() {
+//             break;
+//         }
+//     }
+//
+//     // Clear to the bottom of the command line
+//     for _i in 1..100 {
+//         println!("\n");
+//     }
+//
+//     // Loop through cycles
+//     loop{
+//        for iter_num in 0..=(num_iterations) { // Inclusive
+//            start_timer(work_time, "work").await;
+//            if iter_num < num_iterations {    
+//                start_timer(break_time, "break").await;
+//            } else {
+//                start_timer(extended_time, "long break").await;
+//            }
+//        }
+//     }
+// }
 
-    // Loop through cycles
-    loop{
-       for iter_num in 0..=(num_iterations) { // Inclusive
-           start_timer(work_time, "work");
-           if iter_num < num_iterations {    
-               start_timer(break_time, "break");
-           } else {
-               start_timer(extended_time, "long break");
-           }
-       }
-    }
+async fn start_timer(total_seconds: u32, iteration_type: &str) {
+    let mut timer = Timer::new(Instant::now(), total_seconds);
+    println!("{} {}", timer.value(), iteration_type);
+    // while !timer.is_done() {
+    //     if timer.is_next_second() {
+    //         println!("{} {}", timer.value(), iteration_type);
+    //     }
+    //     sleep(Duration::from_millis(100)); // Polling rate
+    // }
+    timer.wait(iteration_type).await;
+    play_sound(if iteration_type=="work" {
+        "BreakSound.wav"
+    } else { 
+        "WorkSound.wav" 
+    });
+}
 
-    fn start_timer(total_seconds: u32, iteration_type: &str) {
-        let mut timer = Timer::new(Instant::now(), total_seconds);
-        println!("{} {}", timer.value(), iteration_type);
-        while !timer.is_done() {
-            if timer.is_next_second() {
-                println!("{} {}", timer.value(), iteration_type);
-            }
-            sleep(Duration::from_millis(100)); // Polling rate
-        }
-        play_sound(if iteration_type=="work" {
-            "BreakSound.wav"
-        } else { 
-            "WorkSound.wav" 
-        });
-    }
-
-    fn play_sound(file_name: &str) {
-        let device = rodio::default_output_device().unwrap();
-        let file = File::open(file_name).unwrap();
-        let source = rodio::Decoder::new(BufReader::new(file)).unwrap();
-        rodio::play_raw(&device, source.convert_samples());
-    }
+fn play_sound(file_name: &str) {
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    let file = BufReader::new(File::open(file_name).unwrap());
+    let source = Decoder::new(file).unwrap();
+    stream_handle.play_raw(source.convert_samples()).unwrap();
+    std::thread::sleep(std::time::Duration::from_secs(5));
 }
