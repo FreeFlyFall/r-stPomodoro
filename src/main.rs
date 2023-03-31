@@ -1,13 +1,14 @@
 mod timer;
 use timer::Timer;
 
+use tokio;
 use std::io;
 use std::io::Write; // Import flush
 use std::{thread::sleep, time::Duration, time::Instant};
 use regex::Regex;
 use std::fs::File;
 use std::io::BufReader;
-use rodio::Source;
+use rodio::{source::Source, Decoder, OutputStream, Sink};
 
 /*
 Enter times for work, break, and long break in minutes, and the number of iterations before the long break time activates, separated by spaces.
@@ -127,7 +128,8 @@ fn get_minutes(s: &str) -> Result<u32, &'static str> {
     }
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     println!("Enter times for work, break, and long break in minutes, and the number of iterations before \
     the long break time activates, separated by spaces.\n\ne.g. \"1h45 15 30 3\" to work for 1 hour 45 minutes \
     with a 15 min break, and a 30 minutes break after 3 cycles:\n");
@@ -195,35 +197,45 @@ fn main() {
     // Loop through cycles
     loop{
        for iter_num in 0..=(num_iterations) { // Inclusive
-           start_timer(work_time, "work");
+           start_timer(work_time, "work").await;
            if iter_num < num_iterations {    
-               start_timer(break_time, "break");
+               start_timer(break_time, "break").await;
            } else {
-               start_timer(extended_time, "long break");
+               start_timer(extended_time, "long break").await;
            }
        }
     }
+}
 
-    fn start_timer(total_seconds: u32, iteration_type: &str) {
-        let mut timer = Timer::new(Instant::now(), total_seconds);
-        println!("{} {}", timer.value(), iteration_type);
-        while !timer.is_done() {
-            if timer.is_next_second() {
-                println!("{} {}", timer.value(), iteration_type);
-            }
-            sleep(Duration::from_millis(100)); // Polling rate
-        }
-        play_sound(if iteration_type=="work" {
+async fn start_timer(total_seconds: u32, iteration_type: &'static str) {
+    let mut timer = Timer::new(Instant::now(), total_seconds);
+
+    let join_handle = tokio::spawn(async move {
+        play_sound(if iteration_type == "work" {
             "BreakSound.wav"
         } else { 
             "WorkSound.wav" 
         });
-    }
+    });
 
-    fn play_sound(file_name: &str) {
-        let device = rodio::default_output_device().unwrap();
-        let file = File::open(file_name).unwrap();
-        let source = rodio::Decoder::new(BufReader::new(file)).unwrap();
-        rodio::play_raw(&device, source.convert_samples());
-    }
+    timer.wait_and_print(iteration_type).await;
+
+    // Cycle time must be longer than the sound file to prevent a delay from awaiting..
+    // This should be fine since the smallest cycle input possible is 1 minute.
+    join_handle.await;
+}
+
+fn play_sound(file_name: &str) {
+    // Load the sound file
+    let file = File::open(file_name).unwrap();
+    let source = Decoder::new(BufReader::new(file)).unwrap();
+
+    // Create an output stream and sink
+    let (stream, stream_handle) = OutputStream::try_default().unwrap();
+    let sink = Sink::try_new(&stream_handle).unwrap();
+    
+    // Add the sound to the sink
+    sink.append(source);
+    // Wait for the duration of the sound
+    sink.sleep_until_end();
 }

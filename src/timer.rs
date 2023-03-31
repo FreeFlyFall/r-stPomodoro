@@ -1,4 +1,4 @@
-use std::time::Instant;
+use std::time::{Instant, Duration};
 use math::round;
 
 pub struct Timer {
@@ -49,6 +49,19 @@ impl Timer {
 
     pub fn is_done(&self) -> bool {
         self.start_time.elapsed().as_secs() as u32 >= self.total_seconds
+    }
+
+    pub async fn wait_and_print(&mut self, iteration_type: &str) {
+        println!("{} {}", self.value(), iteration_type);
+        loop {
+            if self.start_time.elapsed().as_secs() as u32 >= self.total_seconds {
+                break;
+            }
+            if self.is_next_second() {
+                println!("{} {}", self.value(), iteration_type);
+            }
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
     }
 
     fn format_time(&time: &u32) -> String {
