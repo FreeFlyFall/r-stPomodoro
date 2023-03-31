@@ -218,7 +218,7 @@ async fn start_timer(total_seconds: u32, iteration_type: &'static str) {
         });
     });
 
-    timer.wait_and_print(iteration_type).await;
+    timer.wait_and_print(iteration_type);
 
     // Cycle time must be longer than the sound file to prevent a delay from awaiting..
     // This should be fine since the smallest cycle input possible is 1 minute.
