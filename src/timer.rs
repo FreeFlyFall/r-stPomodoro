@@ -51,14 +51,14 @@ impl Timer {
         self.start_time.elapsed().as_secs() as u32 >= self.total_seconds
     }
 
-    pub async fn wait(&mut self, iteration_type: &str) {
+    pub async fn wait_and_print(&mut self, iteration_type: &str) {
         println!("{} {}", self.value(), iteration_type);
         loop {
-            if self.is_next_second() {
-                println!("{} {}", self.value(), iteration_type);
-            }
             if self.start_time.elapsed().as_secs() as u32 >= self.total_seconds {
                 break;
+            }
+            if self.is_next_second() {
+                println!("{} {}", self.value(), iteration_type);
             }
             tokio::time::sleep(Duration::from_millis(10)).await;
         }
