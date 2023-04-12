@@ -1,5 +1,6 @@
 # r*stPomodoro
 Project renamed due to the trademark policy proposed by the R-word foundation. What a loss it is.
+
 Pomodoro timer written in R*st
 
 Enter times for work, break, and long break in minutes, and the number of iterations before the long break time activates, separated by spaces.
